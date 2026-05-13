@@ -7,20 +7,10 @@ on:
     - cron: '0 3 * * 0'
   # Manual trigger सुद्धा शक्य (Actions tab मधून "Run workflow" button)
   workflow_dispatch:
-  # main branch ला push केल्यावरही build करा
-  push:
-    branches: [main, master]
 
 # Workflow ला permissions द्या
 permissions:
   contents: write
-  pages: write
-  id-token: write
-
-# एकाच वेळी फक्त एकच deployment चालू द्या
-concurrency:
-  group: "pages"
-  cancel-in-progress: false
 
 jobs:
   scrape-and-build:
@@ -45,6 +35,7 @@ jobs:
 
       - name: Rebuild index.html
         run: python scripts/build.py
+        continue-on-error: true
 
       - name: Commit changes (if any)
         run: |
@@ -58,15 +49,3 @@ jobs:
             git push
             echo "✓ नवीन परिपत्रके git ला push केली"
           fi
-
-      - name: Setup Pages
-        uses: actions/configure-pages@v4
-
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: '.'
-
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
