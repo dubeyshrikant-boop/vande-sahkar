@@ -1013,5 +1013,37 @@ document.getElementById('search').addEventListener('input', e => {
 });
 render();
 </script>
+<!-- ===== वंदे सहकार Visitor Counter ===== -->
+<div id="vs-counter" style="position:fixed;bottom:20px;right:20px;background:linear-gradient(135deg,#FF9933 0%,#FFFFFF 50%,#138808 100%);padding:3px;border-radius:50px;box-shadow:0 6px 24px rgba(0,0,0,0.25);z-index:9999;font-family:'Tiro Devanagari Marathi','Noto Sans Devanagari',system-ui,sans-serif;animation:vsSlideIn 0.8s ease-out;">
+  <div style="background:rgba(15,23,42,0.92);backdrop-filter:blur(10px);color:#fff;padding:10px 20px;border-radius:48px;display:flex;align-items:center;gap:10px;font-size:14px;font-weight:600;letter-spacing:0.3px;">
+    <span style="font-size:18px;animation:vsBlink 2s infinite;">👁️</span>
+    <span><span id="vs-count" style="color:#FFD700;font-size:15px;">10,000+</span> सहकारी बांधव</span>
+  </div>
+</div>
+<style>
+  @keyframes vsBlink { 0%,100%{opacity:1;} 50%{opacity:0.5;} }
+  @keyframes vsSlideIn { from{transform:translateY(100px);opacity:0;} to{transform:translateY(0);opacity:1;} }
+  @media (max-width: 480px) {
+    #vs-counter { bottom: 12px !important; right: 12px !important; left: 12px !important; }
+    #vs-counter > div { font-size: 12px !important; padding: 8px 14px !important; justify-content:center; }
+  }
+</style>
+<script>
+(function() {
+  var countEl = document.getElementById('vs-count');
+  fetch('https://abacus.jasoncameron.dev/hit/vandesahkar-dubey-org/visits')
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      var total = (data.value || 0) + 10000;
+      countEl.textContent = total.toLocaleString('en-IN');
+    })
+    .catch(function() {
+      var local = parseInt(localStorage.getItem('vs_v') || '0') + 1;
+      localStorage.setItem('vs_v', local);
+      countEl.textContent = (10000 + local).toLocaleString('en-IN');
+    });
+})();
+</script>
+<!-- ===== Counter End ===== -->
 </body>
 </html>
