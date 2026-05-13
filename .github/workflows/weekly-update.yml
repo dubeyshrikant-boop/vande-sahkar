@@ -1,0 +1,72 @@
+name: साप्ताहिक परिपत्रक update
+
+# कधी चालवायचे?
+on:
+  # दर रविवारी पहाटे ३ वाजता UTC (भारतीय वेळ ८:३० सकाळी)
+  schedule:
+    - cron: '0 3 * * 0'
+  # Manual trigger सुद्धा शक्य (Actions tab मधून "Run workflow" button)
+  workflow_dispatch:
+  # main branch ला push केल्यावरही build करा
+  push:
+    branches: [main, master]
+
+# Workflow ला permissions द्या
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+# एकाच वेळी फक्त एकच deployment चालू द्या
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  scrape-and-build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install requests beautifulsoup4 lxml Pillow
+
+      - name: Scrape latest circulars
+        run: python scripts/scrape.py
+        continue-on-error: true
+
+      - name: Rebuild index.html
+        run: python scripts/build.py
+
+      - name: Commit changes (if any)
+        run: |
+          git config user.name "Vande Sahkar Auto-Updater"
+          git config user.email "actions@github.com"
+          git add data/circulars.json data/last_update.txt index.html 2>/dev/null || true
+          if git diff --staged --quiet; then
+            echo "✓ कोणताही बदल नाही — सर्व up-to-date आहे"
+          else
+            git commit -m "🤖 Auto-update: नवीन परिपत्रके update केली [$(date +'%Y-%m-%d')]"
+            git push
+            echo "✓ नवीन परिपत्रके git ला push केली"
+          fi
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: '.'
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
