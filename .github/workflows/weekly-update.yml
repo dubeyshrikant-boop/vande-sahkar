@@ -1,10 +1,11 @@
-name: साप्ताहिक परिपत्रक update
+name: दैनिक परिपत्रक व शासन निर्णय update
 
 # कधी चालवायचे?
 on:
-  # दर रविवारी पहाटे ३ वाजता UTC (भारतीय वेळ ८:३० सकाळी)
+  # दिवसातून ३ वेळा — सकाळी १०:३०, दुपारी ३:३० व सायंकाळी ८:३० (भारतीय वेळ)
+  # शासन निर्णय पोर्टलवर GR दिवसभर प्रसिद्ध होतात, म्हणून त्याच दिवशी वेबसाइटवर येतात.
   schedule:
-    - cron: '0 3 * * 0'
+    - cron: '0 5,10,15 * * *'
   # Manual trigger सुद्धा शक्य (Actions tab मधून "Run workflow" button)
   workflow_dispatch:
 
@@ -12,15 +13,20 @@ on:
 permissions:
   contents: write
 
+# एकावेळी एकच run — दोन runs एकमेकांचे push अडवणार नाहीत
+concurrency:
+  group: vande-sahkar-update
+  cancel-in-progress: false
+
 jobs:
   scrape-and-build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setup Python 3.11
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: '3.11'
 
@@ -29,15 +35,18 @@ jobs:
           python -m pip install --upgrade pip
           pip install requests beautifulsoup4 lxml Pillow
 
-      - name: Scrape latest circulars
+      # एखादा स्रोत अयशस्वी झाल्यास हा step ✗ दाखवतो (GitHub email करतो),
+      # पण बाकी स्रोतांचा डेटा खालील steps मध्ये तरीही save होतो.
+      - name: Scrape latest circulars & GRs
+        id: scrape
         run: python scripts/scrape.py
-        continue-on-error: true
 
       - name: Rebuild index.html
+        if: ${{ !cancelled() }}
         run: python scripts/build.py
-        continue-on-error: true
 
       - name: Commit changes (if any)
+        if: ${{ !cancelled() }}
         run: |
           git config user.name "Vande Sahkar Auto-Updater"
           git config user.email "actions@github.com"
@@ -45,7 +54,8 @@ jobs:
           if git diff --staged --quiet; then
             echo "✓ कोणताही बदल नाही — सर्व up-to-date आहे"
           else
-            git commit -m "🤖 Auto-update: नवीन परिपत्रके update केली [$(date +'%Y-%m-%d')]"
+            git commit -m "🤖 Auto-update: नवीन परिपत्रके/शासन निर्णय [$(TZ=Asia/Kolkata date +'%Y-%m-%d %H:%M')]"
+            git pull --rebase origin main
             git push
-            echo "✓ नवीन परिपत्रके git ला push केली"
+            echo "✓ नवीन दस्तऐवज git ला push केले"
           fi

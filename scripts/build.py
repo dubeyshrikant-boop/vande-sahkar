@@ -3,7 +3,7 @@
 =====================================================================
  वंदे सहकार — HTML Builder
  scripts/template.html + data/circulars.json + assets/* पासून
- index.html तयार करते. Scrape नंतर weekly workflow मध्ये चालते.
+ index.html तयार करते. Scrape नंतर daily workflow मध्ये चालते.
 =====================================================================
 """
 import json
@@ -63,7 +63,9 @@ def main():
 
     total = len(data)
     pnm_count = sum(1 for d in data if "PNM" in d.get("source", ""))
-    ms_count = sum(1 for d in data if d.get("source") in ("MS", "PNM+MS"))
+    ms_site_count = sum(1 for d in data if d.get("source") in ("MS", "PNM+MS"))
+    gr_count = sum(1 for d in data if d.get("source") == "GR")
+    ms_count = ms_site_count + gr_count  # सहकार विभाग = विभागाची साइट + शासन निर्णय पोर्टल
     years = sorted({d["year"] for d in data if d.get("year")})
     year_span = f"{to_marathi(min(years))} — {to_marathi(max(years))}" if years else "—"
 
@@ -88,6 +90,8 @@ def main():
         "__TOTAL_INLINE__": to_marathi(total),
         "__PNM_INLINE__": to_marathi(pnm_count),
         "__MS_INLINE__": to_marathi(ms_count),
+        "__MS_SITE_INLINE__": to_marathi(ms_site_count),
+        "__GR_INLINE__": to_marathi(gr_count),
     }
     html = template
     for placeholder, value in replacements.items():

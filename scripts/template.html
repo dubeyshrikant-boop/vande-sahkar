@@ -403,7 +403,7 @@
     display: flex; gap: 14px; flex-wrap: wrap; align-items: center;
   }
   .filter-group {
-    display: flex; align-items: center; gap: 6px;
+    display: flex; align-items: center; gap: 6px; flex-wrap: wrap; max-width: 100%;
     background: var(--paper); border: 1px solid var(--line);
     border-radius: 14px; padding: 6px 8px;
     box-shadow: var(--shadow-sm);
@@ -427,6 +427,16 @@
   .pill .dot { width: 8px; height: 8px; border-radius: 50%; }
   .pill .dot.pnm { background: var(--royal); }
   .pill .dot.ms { background: var(--green); }
+  .pill .dot.gr { background: var(--purple); }
+  .new-banner {
+    display: none; width: 100%; margin-bottom: 16px; padding: 14px 18px;
+    border: 1px solid var(--saffron); border-left: 6px solid var(--saffron);
+    border-radius: 14px; background: var(--saffron-soft); color: var(--ink);
+    font-family: inherit; font-size: 14px; text-align: left; cursor: pointer;
+  }
+  .new-banner strong { color: var(--saffron); }
+  .new-banner:hover { box-shadow: var(--shadow-sm); }
+  .tag-new { background: var(--saffron); color: #fff; }
   /* LAYOUT */
   .layout {
     max-width: 1400px; margin: 16px auto 0;
@@ -518,6 +528,7 @@
   .card.src-pnm::before { background: linear-gradient(180deg, var(--royal), var(--gold)); }
   .card.src-ms::before { background: linear-gradient(180deg, var(--green), var(--teal)); }
   .card.src-pnm-ms::before { background: linear-gradient(180deg, var(--royal), var(--green)); }
+  .card.src-gr::before { background: linear-gradient(180deg, var(--purple), var(--green)); }
   .card:hover {
     transform: translateY(-4px); border-color: var(--royal);
     box-shadow: var(--shadow-lg);
@@ -535,6 +546,7 @@
   .tag-src-pnm { background: var(--royal-soft); color: var(--royal); }
   .tag-src-ms { background: var(--green-soft); color: var(--green); }
   .tag-src-both { background: var(--gold-soft); color: var(--gold-deep); }
+  .tag-src-gr { background: var(--purple-soft); color: var(--purple); }
   .tag-type-circular { background: var(--royal-soft); color: var(--royal); }
   .tag-type-gr { background: var(--purple-soft); color: var(--purple); }
   .tag-type-act { background: var(--rose-soft); color: var(--rose); }
@@ -825,7 +837,20 @@
     <span class="filter-label">स्रोत</span>
     <button class="pill active" data-src="ALL">सर्व <span class="count">__TOTAL_INLINE__</span></button>
     <button class="pill" data-src="PNM"><span class="dot pnm"></span> नियामक मंडळ <span class="count">__PNM_INLINE__</span></button>
-    <button class="pill" data-src="MS"><span class="dot ms"></span> सहकार विभाग <span class="count">__MS_INLINE__</span></button>
+    <button class="pill" data-src="MS"><span class="dot ms"></span> सहकार विभाग <span class="count">__MS_SITE_INLINE__</span></button>
+    <button class="pill" data-src="GR"><span class="dot gr"></span> शासन निर्णय पोर्टल <span class="count">__GR_INLINE__</span></button>
+  </div>
+  <div class="filter-group">
+    <span class="filter-label">क्षेत्र</span>
+    <button class="pill active" data-pat="ALL">सर्व सहकार</button>
+    <button class="pill" data-pat="PAT">⭐ पतसंस्था संबंधित</button>
+  </div>
+  <div class="filter-group">
+    <span class="filter-label">कालावधी</span>
+    <button class="pill active" data-days="ALL">सर्व</button>
+    <button class="pill" data-days="1">आज</button>
+    <button class="pill" data-days="7">७ दिवस</button>
+    <button class="pill" data-days="30">३० दिवस</button>
   </div>
   <div class="filter-group">
     <span class="filter-label">प्रकार</span>
@@ -850,9 +875,10 @@
   <main class="main">
     <div class="search-bar">
       <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-      <input type="text" id="search" placeholder="शोधा... परिपत्रकाचे नाव, विषय, वर्ष (उदा: 'NPA', 'कर्ज मर्यादा', 'KYC', '२०२४', 'audit')">
+      <input type="text" id="search" placeholder="शोधा... शीर्षक, विषय, वर्ष, GR क्रमांक (उदा: 'NPA', 'कर्ज मर्यादा', 'KYC', '२०२४', 'audit')">
       <span class="result-count" id="resultCount">__TOTAL__</span>
     </div>
+    <button class="new-banner" id="newBanner" type="button"></button>
     <div class="grid" id="grid"></div>
   </main>
 </div>
@@ -907,7 +933,17 @@ const categoryMr = {
   "Compliance & Reporting": "📈 अनुपालन व अहवाल",
   "Salary Deduction (K-49)": "💼 वेतन कपात (क-४९)",
   "Elections & Administration": "🗳️ निवडणूक व प्रशासन",
-  "Inspection & Inquiry": "🔎 तपासणी व चौकशी"
+  "Inspection & Inquiry": "🔎 तपासणी व चौकशी",
+  "Cooperative Banks": "🏦 सहकारी बँका",
+  "Agri Credit & Crop Loans": "🌾 कृषी पतपुरवठा व पीक कर्ज",
+  "Housing Societies": "🏘️ गृहनिर्माण संस्था",
+  "Sugar Cooperatives": "🍬 साखर कारखाने",
+  "Marketing, APMC & Procurement": "🛒 पणन, बाजार समिती व खरेदी",
+  "Textiles & Spinning Mills": "🧵 वस्त्रोद्योग व सूतगिरणी",
+  "Labour & Other Societies": "👷 मजूर व इतर संस्था",
+  "Schemes, Funds & Grants": "💰 योजना, निधी व अनुदान",
+  "Department Staff & Establishment": "👔 विभागीय आस्थापना",
+  "Other Cooperative Decisions": "📄 इतर सहकार निर्णय"
 };
 const categoryOrder = Object.keys(categoryMr);
 
@@ -921,9 +957,10 @@ const topicList = document.getElementById('topicList');
 const allBtn = document.createElement('button');
 allBtn.className = 'topic active';
 allBtn.dataset.cat = 'ALL';
-allBtn.innerHTML = '<span class="topic-name">📚 सर्व परिपत्रके<small>संपूर्ण भांडार</small></span><span class="topic-count">' + DATA.length + '</span>';
+allBtn.innerHTML = '<span class="topic-name">📚 सर्व दस्तऐवज<small>संपूर्ण भांडार</small></span><span class="topic-count">' + DATA.length + '</span>';
 topicList.appendChild(allBtn);
 topicList.appendChild(Object.assign(document.createElement('div'), {className: 'topic-divider'}));
+Object.keys(categoryMeta).forEach(cat => { if (!categoryMr[cat]) { categoryMr[cat] = '📄 ' + cat; categoryOrder.push(cat); } });
 categoryOrder.forEach(cat => {
   if (!categoryMeta[cat]) return;
   const btn = document.createElement('button');
@@ -933,7 +970,21 @@ categoryOrder.forEach(cat => {
   topicList.appendChild(btn);
 });
 
-const state = { cat: 'ALL', src: 'ALL', type: 'ALL', search: '' };
+const state = { cat: 'ALL', src: 'ALL', type: 'ALL', pat: 'ALL', days: 'ALL', search: '' };
+
+// दस्तऐवज किती दिवसांपूर्वीचा (भारतीय वेळेनुसार). तारीख नसल्यास null.
+function istToday() {
+  const now = new Date(Date.now() + (330 + new Date().getTimezoneOffset()) * 60000);
+  return Date.UTC(now.getFullYear(), now.getMonth(), now.getDate());
+}
+const TODAY = istToday();
+function ageDays(d) {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(d.date || '');
+  if (!m) return null;
+  return Math.round((TODAY - Date.UTC(+m[1], +m[2] - 1, +m[3])) / 86400000);
+}
+DATA.forEach(d => { d._age = ageDays(d); });
+const NEW_DAYS = 7;
 const grid = document.getElementById('grid');
 const resultCount = document.getElementById('resultCount');
 
@@ -948,16 +999,19 @@ function render() {
     if (state.src !== 'ALL') {
       if (state.src === 'PNM' && !d.source.includes('PNM')) return false;
       if (state.src === 'MS' && d.source !== 'MS' && d.source !== 'PNM+MS') return false;
+      if (state.src === 'GR' && d.source !== 'GR') return false;
     }
+    if (state.pat === 'PAT' && d.pat === false) return false;
+    if (state.days !== 'ALL' && (d._age === null || d._age >= +state.days)) return false;
     if (state.type !== 'ALL' && d.doc_type !== state.type) return false;
     if (state.search) {
       const q = state.search.toLowerCase();
-      const hay = (d.title_en + ' ' + d.title_mr + ' ' + d.category + ' ' + d.category_mr + ' ' + (d.tags||[]).join(' ') + ' ' + (d.year||'')).toLowerCase();
+      const hay = (d.title_en + ' ' + d.title_mr + ' ' + d.category + ' ' + d.category_mr + ' ' + (d.tags||[]).join(' ') + ' ' + (d.year||'') + ' ' + (d.gr_number||'') + ' ' + (d.department||'')).toLowerCase();
       if (!hay.includes(q)) return false;
     }
     return true;
   });
-  filtered.sort((a, b) => (b.year || 0) - (a.year || 0));
+  filtered.sort((a, b) => (b.date || '').localeCompare(a.date || '') || (b.year || 0) - (a.year || 0));
   resultCount.textContent = toMR(filtered.length);
 
   if (filtered.length === 0) {
@@ -969,16 +1023,18 @@ function render() {
   const typeClassMap = { 'Circular': 'tag-type-circular', 'GR/Notification': 'tag-type-gr', 'Act': 'tag-type-act', 'Rules': 'tag-type-rules', 'Notification': 'tag-type-notification', 'Bye-laws': 'tag-type-bye-laws' };
 
   grid.innerHTML = filtered.map(d => {
-    const srcClass = d.source === 'PNM' ? 'src-pnm' : d.source === 'MS' ? 'src-ms' : 'src-pnm-ms';
-    const sourceTag = d.source === 'PNM+MS' ? '<span class="tag tag-src-both">⭐ दोन्ही स्रोत</span>' : d.source === 'PNM' ? '<span class="tag tag-src-pnm">🏛️ नियामक मंडळ</span>' : '<span class="tag tag-src-ms">🏢 सहकार विभाग</span>';
+    const srcClass = d.source === 'PNM' ? 'src-pnm' : d.source === 'MS' ? 'src-ms' : d.source === 'GR' ? 'src-gr' : 'src-pnm-ms';
+    const sourceTag = d.source === 'PNM+MS' ? '<span class="tag tag-src-both">⭐ दोन्ही स्रोत</span>' : d.source === 'PNM' ? '<span class="tag tag-src-pnm">🏛️ नियामक मंडळ</span>' : d.source === 'GR' ? '<span class="tag tag-src-gr">📰 शासन निर्णय</span>' : '<span class="tag tag-src-ms">🏢 सहकार विभाग</span>';
+    const newTag = d._age !== null && d._age >= 0 && d._age < NEW_DAYS ? '<span class="tag tag-new">🔔 नवीन</span>' : '';
+    const titleEn = d.title_en && d.title_en !== d.title_mr ? d.title_en : (d.gr_number ? 'GR क्र. ' + d.gr_number : '');
     const typeLabel = typeMap[d.doc_type] || d.doc_type;
     const typeClass = typeClassMap[d.doc_type] || 'tag-type-circular';
     const dateDisplay = d.date && d.date !== '—' ? toMR(d.date) : '—';
     const yearTag = d.year ? '<span class="tag tag-year">' + toMR(d.year) + '</span>' : '';
     return '<a href="' + d.pdf_url + '" target="_blank" rel="noopener" class="card ' + srcClass + '">' +
-      '<div class="card-tags">' + sourceTag + '<span class="tag ' + typeClass + '">' + typeLabel + '</span>' + yearTag + '</div>' +
+      '<div class="card-tags">' + newTag + sourceTag + '<span class="tag ' + typeClass + '">' + typeLabel + '</span>' + yearTag + '</div>' +
       '<div class="card-title-mr">' + d.title_mr + '</div>' +
-      '<div class="card-title-en">' + d.title_en + '</div>' +
+      (titleEn ? '<div class="card-title-en">' + titleEn + '</div>' : '') +
       '<div class="card-footer">' +
         '<div class="card-meta">' +
           '<div class="card-date">' + dateDisplay + '</div>' +
@@ -1008,6 +1064,25 @@ document.querySelectorAll('.pill[data-type]').forEach(b => b.addEventListener('c
   document.querySelectorAll('.pill[data-type]').forEach(x => x.classList.remove('active'));
   b.classList.add('active'); state.type = b.dataset.type; render();
 }));
+document.querySelectorAll('.pill[data-pat]').forEach(b => b.addEventListener('click', () => {
+  document.querySelectorAll('.pill[data-pat]').forEach(x => x.classList.remove('active'));
+  b.classList.add('active'); state.pat = b.dataset.pat; render();
+}));
+function setDays(v) {
+  document.querySelectorAll('.pill[data-days]').forEach(x => x.classList.toggle('active', x.dataset.days === v));
+  state.days = v; render();
+}
+document.querySelectorAll('.pill[data-days]').forEach(b => b.addEventListener('click', () => setDays(b.dataset.days)));
+
+const newBanner = document.getElementById('newBanner');
+const recent = DATA.filter(d => d._age !== null && d._age >= 0 && d._age < NEW_DAYS);
+if (recent.length) {
+  const today = recent.filter(d => d._age === 0).length;
+  newBanner.innerHTML = '🔔 <strong>गेल्या ७ दिवसांत ' + toMR(recent.length) + ' नवीन दस्तऐवज</strong>' +
+    (today ? ' · आज ' + toMR(today) : '') + ' — पाहण्यासाठी येथे क्लिक करा →';
+  newBanner.style.display = 'block';
+  newBanner.addEventListener('click', () => setDays(String(NEW_DAYS)));
+}
 document.getElementById('search').addEventListener('input', e => {
   state.search = e.target.value; render();
 });
