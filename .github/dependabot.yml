@@ -1,0 +1,8 @@
+# GitHub दर महिन्याला तपासतो की Actions (checkout, setup-python) ची नवीन आवृत्ती आली का,
+# आणि आल्यास आपोआप Pull Request उघडतो — फक्त "Merge" दाबायचे.
+version: 2
+updates:
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "monthly"
