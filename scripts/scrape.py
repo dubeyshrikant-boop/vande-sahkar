@@ -310,7 +310,13 @@ def main():
     print("\n🔍 Source 3: शासन निर्णय पोर्टल")
     gr = scrape_gr_portal(known_gr)
 
+    # a source that answers but lists NOTHING means its page changed — treat it as failed too (red run + GitHub e-mail),
+    # never as «सर्व up-to-date» (the GR portal's own list is the «सहकार विभाग: x of N» total, so N = 0 is the failure)
     failed = [name for name, res in (("Niyamak Mandal", pnm), ("Sahkar Vibhag", ms), ("GR Portal", gr)) if res is None]
+    if pnm is not None and not pnm:
+        failed.append("Niyamak Mandal (0 entries)")
+    if ms is not None and not ms:
+        failed.append("Sahkar Vibhag (0 entries)")
 
     new_count = 0
     for entry in (pnm or []) + (ms or []) + (gr or []):
